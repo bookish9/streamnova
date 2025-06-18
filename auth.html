@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamNova Login</title>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script defer src="auth.js"></script>
+</head>
+<body>
+  <h2>Login to StreamNova</h2>
+
+  <input type="email" id="email" placeholder="Email" /><br/><br/>
+  <input type="password" id="password" placeholder="Password" /><br/><br/>
+
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="logIn()">Login</button>
+  <p id="status"></p>
+</body>
+</html>
