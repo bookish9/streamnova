@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StreamNova Dashboard</title>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script defer src="auth.js"></script>
+</head>
+<body style="font-family: sans-serif; background: #121212; color: white; text-align: center; padding-top: 50px;">
+  <h2>🎥 Welcome to Your StreamNova Dashboard</h2>
+  <p id="welcome-msg">Checking login status...</p>
+  <br />
+  <button onclick="logOut()" style="padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px;">Logout</button>
+
+  <script>
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
+      } else {
+        // Not logged in – redirect to auth page
+        window.location.href = "auth.html";
+      }
+    });
+
+    function logOut() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "auth.html";
+      });
+    }
+  </script>
+</body>
+</html>
