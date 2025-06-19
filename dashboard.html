@@ -3,26 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <title>StreamNova Dashboard</title>
-  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script defer src="auth.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; background: #121212; color: white; text-align: center; padding-top: 50px;">
+<body>
   <h2>🎥 Welcome to Your StreamNova Dashboard</h2>
   <p id="welcome-msg">Checking login status...</p>
-  <br />
-  <button onclick="logOut()" style="padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px;">Logout</button>
+  <button onclick="logOut()">Logout</button>
 
   <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
+      authDomain: "streamnova-4dbc3.firebaseapp.com",
+      projectId: "streamnova-4dbc3",
+      storageBucket: "streamnova-4dbc3.firebasestorage.app",
+      messagingSenderId: "834796110267",
+      appId: "1:834796110267:web:070b24b6ed05d2664fc49e",
+      measurementId: "G-K00DN1ZM5Q"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Auth check
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
       } else {
-        // Not logged in – redirect to auth page
-        window.location.href = "auth.html";
+        document.getElementById("welcome-msg").innerText = "❌ Not logged in. Redirecting...";
+        setTimeout(() => {
+          window.location.href = "auth.html";
+        }, 2000);
       }
     });
 
+    // Logout
     function logOut() {
       firebase.auth().signOut().then(() => {
         window.location.href = "auth.html";
