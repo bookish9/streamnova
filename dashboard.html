@@ -7,6 +7,7 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
     body {
@@ -24,12 +25,32 @@
       border-radius: 5px;
       margin-top: 20px;
     }
+    input, select {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
   <h2>🎥 Welcome to Your StreamNova Dashboard</h2>
   <p id="welcome-msg">Checking login status...</p>
   <button onclick="logOut()">Logout</button>
+
+  <hr style="margin: 40px 0;">
+  <h3>💸 Setup Your Tip/Donation Page</h3>
+
+  <label>Choose Tip Method:</label><br>
+  <select id="tip-method">
+    <option value="paypal">PayPal</option>
+    <option value="paystack">Paystack</option>
+    <option value="flutterwave">Flutterwave</option>
+  </select><br><br>
+
+  <input type="text" id="tip-link" placeholder="Paste your full tip link here" style="width: 300px;"><br><br>
+  <button onclick="saveTipLink()">💾 Save Tip Settings</button>
+
+  <p id="tip-status" style="color: #0f0;"></p>
 
   <script>
     // Firebase Config
@@ -45,6 +66,7 @@
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     // Auth check
     firebase.auth().onAuthStateChanged((user) => {
@@ -64,46 +86,28 @@
         window.location.href = "auth.html";
       });
     }
+
+    // Save Tip Link to Firestore
+    function saveTipLink() {
+      const method = document.getElementById("tip-method").value;
+      const link = document.getElementById("tip-link").value;
+      const user = firebase.auth().currentUser;
+
+      if (!link || !method) {
+        alert("Please select a tip method and enter your link.");
+        return;
+      }
+
+      db.collection("users").doc(user.uid).set({
+        email: user.email,
+        tipMethod: method,
+        tipLink: link
+      }).then(() => {
+        document.getElementById("tip-status").innerText = "✅ Tip settings saved successfully!";
+      }).catch((error) => {
+        document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
+      });
+    }
   </script>
 </body>
-</html> 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-  const db = firebase.firestore();
-
-  function saveTipLink() {
-    const method = document.getElementById("tip-method").value;
-    const link = document.getElementById("tip-link").value;
-    const user = firebase.auth().currentUser;
-
-    if (!link || !method) {
-      alert("Please select a tip method and enter your link.");
-      return;
-    }
-
-    db.collection("users").doc(user.uid).set({
-      email: user.email,
-      tipMethod: method,
-      tipLink: link
-    }).then(() => {
-      document.getElementById("tip-status").innerText = "✅ Tip settings saved successfully!";
-    }).catch((error) => {
-      document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
-    });
-  }
-</script>
-<hr style="margin: 40px 0;">
-<h3>💸 Setup Your Tip/Donation Page</h3>
-
-<label>Choose Tip Method:</label><br>
-<select id="tip-method">
-  <option value="paypal">PayPal</option>
-  <option value="paystack">Paystack</option>
-  <option value="flutterwave">Flutterwave</option>
-</select><br><br>
-
-<input type="text" id="tip-link" placeholder="Paste your full tip link here" style="width: 300px;"><br><br>
-<button onclick="saveTipLink()">💾 Save Tip Settings</button>
-
-<p id="tip-status" style="color: #0f0;"></p>
-
+</html>
