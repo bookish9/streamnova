@@ -1,58 +1,127 @@
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
-    authDomain: "streamnova-4dbc3.firebaseapp.com",
-    projectId: "streamnova-4dbc3",
-    storageBucket: "streamnova-4dbc3.firebasestorage.app",
-    messagingSenderId: "834796110267",
-    appId: "1:834796110267:web:070b24b6ed05d2664fc49e",
-    measurementId: "G-K00DN1ZM5Q"
-  };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StreamNova Dashboard</title>
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-      document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
-    } else {
-      document.getElementById("welcome-msg").innerText = "❌ Not logged in. Redirecting...";
-      setTimeout(() => {
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+
+    input, select {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px;
+      width: 300px;
+    }
+
+    #tip-section {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎥 Welcome to Your StreamNova Dashboard</h2>
+  <p id="welcome-msg">Checking login status...</p>
+  <button onclick="logOut()">Logout</button>
+
+  <div id="tip-section">
+    <hr>
+    <h3>💸 Setup Your Tip/Donation Page</h3>
+
+    <label>Choose Tip Method:</label><br>
+    <select id="tip-method">
+      <option value="paypal">PayPal</option>
+      <option value="paystack">Paystack</option>
+      <option value="flutterwave">Flutterwave</option>
+    </select><br>
+
+    <input type="text" id="tip-link" placeholder="Paste your full tip link here"><br>
+    <button onclick="saveTipLink()">💾 Save Tip Settings</button>
+    <p id="tip-status" style="color: #0f0;"></p>
+  </div>
+
+  <script>
+    // ✅ Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
+      authDomain: "streamnova-4dbc3.firebaseapp.com",
+      projectId: "streamnova-4dbc3",
+      storageBucket: "streamnova-4dbc3.firebasestorage.app",
+      messagingSenderId: "834796110267",
+      appId: "1:834796110267:web:070b24b6ed05d2664fc49e",
+      measurementId: "G-K00DN1ZM5Q"
+    };
+
+    // ✅ Initialize Firebase + Firestore
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ✅ Auth Check
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
+      } else {
+        document.getElementById("welcome-msg").innerText = "❌ Not logged in. Redirecting...";
+        setTimeout(() => {
+          window.location.href = "auth.html";
+        }, 2000);
+      }
+    });
+
+    // ✅ Logout
+    function logOut() {
+      firebase.auth().signOut().then(() => {
         window.location.href = "auth.html";
-      }, 2000);
-    }
-  });
-
-  function logOut() {
-    firebase.auth().signOut().then(() => {
-      window.location.href = "auth.html";
-    });
-  }
-
-  function saveTipLink() {
-    const method = document.getElementById("tip-method").value;
-    const link = document.getElementById("tip-link").value;
-    const user = firebase.auth().currentUser;
-
-    if (!method || !link) {
-      alert("Please select a tip method and paste your tip link.");
-      return;
+      });
     }
 
-    if (!user) {
-      alert("User not logged in yet. Please wait and try again.");
-      return;
-    }
+    // ✅ Save Tip Link
+    function saveTipLink() {
+      const method = document.getElementById("tip-method").value;
+      const link = document.getElementById("tip-link").value;
+      const user = firebase.auth().currentUser;
 
-    db.collection("users").doc(user.uid).set({
-      email: user.email,
-      tipMethod: method,
-      tipLink: link
-    }).then(() => {
-      document.getElementById("tip-status").innerText = "✅ Tip settings saved successfully!";
-    }).catch((error) => {
-      console.error("❌ Firestore error:", error);
-      document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
-    });
-  }
-</script>
+      if (!method || !link) {
+        alert("Please select a tip method and paste your link.");
+        return;
+      }
+
+      if (!user) {
+        alert("User not logged in yet. Please wait...");
+        return;
+      }
+
+      db.collection("users").doc(user.uid).set({
+        email: user.email,
+        tipMethod: method,
+        tipLink: link
+      }).then(() => {
+        document.getElementById("tip-status").innerText = "✅ Tip settings saved successfully!";
+      }).catch((error) => {
+        console.error("❌ Firestore error:", error);
+        document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
+      });
+    }
+  </script>
+</body>
+</html>
