@@ -48,6 +48,9 @@
     <hr>
     <h3>💸 Setup Your Tip/Donation Page</h3>
 
+    <label>Choose Your Public Username:</label><br>
+    <input type="text" id="tip-username" placeholder="e.g. raphael123" /><br><br>
+
     <label>Choose Tip Method:</label><br>
     <select id="tip-method">
       <option value="paypal">PayPal</option>
@@ -72,11 +75,11 @@
       measurementId: "G-K00DN1ZM5Q"
     };
 
-    // ✅ Initialize Firebase + Firestore
+    // ✅ Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ✅ Auth Check
+    // ✅ Auth check
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
@@ -95,14 +98,15 @@
       });
     }
 
-    // ✅ Save Tip Link
+    // ✅ Save Tip Link + Username
     function saveTipLink() {
+      const username = document.getElementById("tip-username").value.trim().toLowerCase();
       const method = document.getElementById("tip-method").value;
       const link = document.getElementById("tip-link").value;
       const user = firebase.auth().currentUser;
 
-      if (!method || !link) {
-        alert("Please select a tip method and paste your link.");
+      if (!username || !method || !link) {
+        alert("Please fill out all fields.");
         return;
       }
 
@@ -113,6 +117,7 @@
 
       db.collection("users").doc(user.uid).set({
         email: user.email,
+        username: username,
         tipMethod: method,
         tipLink: link
       }).then(() => {
