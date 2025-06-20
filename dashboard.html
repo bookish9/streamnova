@@ -15,7 +15,15 @@
       color: white;
       font-family: sans-serif;
       text-align: center;
-      padding-top: 50px;
+      padding-top: 40px;
+    }
+
+    input, select, textarea {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px;
+      width: 300px;
+      border: none;
     }
 
     button {
@@ -25,46 +33,67 @@
       border: none;
       border-radius: 5px;
       margin-top: 20px;
+      cursor: pointer;
     }
 
-    input, select {
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px;
-      width: 300px;
+    #tip-status {
+      margin-top: 20px;
+      color: #0f0;
     }
 
-    #tip-section {
-      margin-top: 40px;
+    #logout-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #444;
     }
   </style>
 </head>
 <body>
   <h2>🎥 Welcome to Your StreamNova Dashboard</h2>
   <p id="welcome-msg">Checking login status...</p>
-  <button onclick="logOut()">Logout</button>
+  <button id="logout-button" onclick="logOut()">Logout</button>
 
   <div id="tip-section">
     <hr>
-    <h3>💸 Setup Your Tip/Donation Page</h3>
+    <h3>💸 Setup Your Creator Profile</h3>
 
-    <label>Choose Your Public Username:</label><br>
-    <input type="text" id="tip-username" placeholder="e.g. raphael123" /><br><br>
+    <label>Full Name:</label><br>
+    <input type="text" id="profile-name" placeholder="e.g. Raphael Samson" /><br>
 
-    <label>Choose Tip Method:</label><br>
+    <label>Short Bio:</label><br>
+    <textarea id="profile-bio" placeholder="Tell fans about yourself..." rows="4"></textarea><br>
+
+    <label>Avatar Image URL:</label><br>
+    <input type="text" id="profile-avatar" placeholder="Paste a link to your profile picture" /><br>
+
+    <label>YouTube Link (optional):</label><br>
+    <input type="text" id="profile-youtube" placeholder="https://youtube.com/..." /><br>
+
+    <label>TikTok Link (optional):</label><br>
+    <input type="text" id="profile-tiktok" placeholder="https://tiktok.com/..." /><br>
+
+    <label>Twitch Link (optional):</label><br>
+    <input type="text" id="profile-twitch" placeholder="https://twitch.tv/..." /><br>
+
+    <label>Public Username:</label><br>
+    <input type="text" id="tip-username" placeholder="e.g. raphael123" /><br>
+
+    <label>Tip Method:</label><br>
     <select id="tip-method">
       <option value="paypal">PayPal</option>
       <option value="paystack">Paystack</option>
       <option value="flutterwave">Flutterwave</option>
     </select><br>
 
-    <input type="text" id="tip-link" placeholder="Paste your full tip link here"><br>
-    <button onclick="saveTipLink()">💾 Save Tip Settings</button>
-    <p id="tip-status" style="color: #0f0;"></p>
+    <input type="text" id="tip-link" placeholder="Paste your tip link here"><br>
+
+    <button onclick="saveTipLink()">💾 Save Profile & Tip Info</button>
+    <p id="tip-status"></p>
   </div>
 
   <script>
-    // ✅ Firebase Config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
       authDomain: "streamnova-4dbc3.firebaseapp.com",
@@ -75,11 +104,11 @@
       measurementId: "G-K00DN1ZM5Q"
     };
 
-    // ✅ Initialize Firebase
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ✅ Auth check
+    // Auth check
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         document.getElementById("welcome-msg").innerText = `👋 Hello, ${user.email}`;
@@ -91,37 +120,51 @@
       }
     });
 
-    // ✅ Logout
+    // Logout
     function logOut() {
       firebase.auth().signOut().then(() => {
         window.location.href = "auth.html";
       });
     }
 
-    // ✅ Save Tip Link + Username
+    // Save profile and tip info
     function saveTipLink() {
-      const username = document.getElementById("tip-username").value.trim().toLowerCase();
-      const method = document.getElementById("tip-method").value;
-      const link = document.getElementById("tip-link").value;
       const user = firebase.auth().currentUser;
 
-      if (!username || !method || !link) {
-        alert("Please fill out all fields.");
+      const fullName = document.getElementById("profile-name").value.trim();
+      const bio = document.getElementById("profile-bio").value.trim();
+      const avatar = document.getElementById("profile-avatar").value.trim();
+      const youtube = document.getElementById("profile-youtube").value.trim();
+      const tiktok = document.getElementById("profile-tiktok").value.trim();
+      const twitch = document.getElementById("profile-twitch").value.trim();
+
+      const username = document.getElementById("tip-username").value.trim().toLowerCase();
+      const method = document.getElementById("tip-method").value;
+      const link = document.getElementById("tip-link").value.trim();
+
+      if (!fullName || !bio || !avatar || !username || !method || !link) {
+        alert("Please fill out all required fields.");
         return;
       }
 
       if (!user) {
-        alert("User not logged in yet. Please wait...");
+        alert("User not logged in yet.");
         return;
       }
 
       db.collection("users").doc(user.uid).set({
         email: user.email,
-        username: username,
+        username,
+        fullName,
+        bio,
+        avatar,
+        youtube,
+        tiktok,
+        twitch,
         tipMethod: method,
         tipLink: link
       }).then(() => {
-        document.getElementById("tip-status").innerText = "✅ Tip settings saved successfully!";
+        document.getElementById("tip-status").innerText = "✅ Profile saved successfully!";
       }).catch((error) => {
         console.error("❌ Firestore error:", error);
         document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
