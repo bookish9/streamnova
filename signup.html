@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up - StreamNova</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    h2 {
+      margin-bottom: 30px;
+    }
+
+    input {
+      padding: 12px;
+      border-radius: 8px;
+      margin: 10px auto;
+      width: 90%;
+      max-width: 350px;
+      border: none;
+      display: block;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    #signup-status {
+      margin-top: 15px;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Create Your StreamNova Account</h2>
+
+  <input type="text" id="full-name" placeholder="Full Name" />
+  <input type="text" id="username" placeholder="Choose a username (e.g. raphael123)" />
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+
+  <button onclick="signup()">🚀 Create Account</button>
+  <p id="signup-status"></p>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
+      authDomain: "streamnova-4dbc3.firebaseapp.com",
+      projectId: "streamnova-4dbc3",
+      storageBucket: "streamnova-4dbc3.appspot.com",
+      messagingSenderId: "834796110267",
+      appId: "1:834796110267:web:070b24b6ed05d2664fc49e",
+      measurementId: "G-K00DN1ZM5Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function signup() {
+      const fullName = document.getElementById("full-name").value.trim();
+      const username = document.getElementById("username").value.trim().toLowerCase();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const status = document.getElementById("signup-status");
+
+      if (!fullName || !username || !email || !password) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      status.innerText = "⏳ Creating account...";
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const uid = userCredential.user.uid;
+
+          return db.collection("users").doc(uid).set({
+            fullName,
+            username,
+            email
+          });
+        })
+        .then(() => {
+          status.innerText = "✅ Account created! Redirecting...";
+          setTimeout(() => {
+            window.location.href = "setup.html";
+          }, 1500);
+        })
+        .catch((error) => {
+          console.error("Signup error:", error);
+          status.innerText = `❌ ${error.message}`;
+        });
+    }
+  </script>
+</body>
+</html>
