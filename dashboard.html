@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <style>
     body {
@@ -47,6 +48,13 @@
       right: 20px;
       background: #444;
     }
+
+    #preview-avatar {
+      max-width: 100px;
+      margin-top: 10px;
+      border-radius: 8px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -64,8 +72,9 @@
     <label>Short Bio:</label><br>
     <textarea id="profile-bio" placeholder="Tell fans about yourself..." rows="4"></textarea><br>
 
-    <label>Avatar Image URL:</label><br>
-    <input type="text" id="profile-avatar" placeholder="Paste a link to your profile picture" /><br>
+    <label>Upload Profile Image:</label><br>
+    <input type="file" id="profile-avatar-file" accept="image/*" /><br>
+    <img id="preview-avatar" src="" alt="Preview" /><br>
 
     <label>YouTube Link (optional):</label><br>
     <input type="text" id="profile-youtube" placeholder="https://youtube.com/..." /><br>
@@ -98,15 +107,15 @@
       apiKey: "AIzaSyD8C74L3VddED8ToArBcU0ZCUPZUsjoXeU",
       authDomain: "streamnova-4dbc3.firebaseapp.com",
       projectId: "streamnova-4dbc3",
-      storageBucket: "streamnova-4dbc3.firebasestorage.app",
+      storageBucket: "streamnova-4dbc3.appspot.com",
       messagingSenderId: "834796110267",
       appId: "1:834796110267:web:070b24b6ed05d2664fc49e",
       measurementId: "G-K00DN1ZM5Q"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
     // Auth check
     firebase.auth().onAuthStateChanged((user) => {
@@ -127,13 +136,24 @@
       });
     }
 
-    // Save profile and tip info
+    // Show avatar preview
+    document.getElementById("profile-avatar-file").addEventListener("change", function () {
+      const file = this.files[0];
+      const preview = document.getElementById("preview-avatar");
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+      } else {
+        preview.style.display = "none";
+      }
+    });
+
+    // Save profile + tip info
     function saveTipLink() {
       const user = firebase.auth().currentUser;
 
       const fullName = document.getElementById("profile-name").value.trim();
       const bio = document.getElementById("profile-bio").value.trim();
-      const avatar = document.getElementById("profile-avatar").value.trim();
       const youtube = document.getElementById("profile-youtube").value.trim();
       const tiktok = document.getElementById("profile-tiktok").value.trim();
       const twitch = document.getElementById("profile-twitch").value.trim();
@@ -142,7 +162,10 @@
       const method = document.getElementById("tip-method").value;
       const link = document.getElementById("tip-link").value.trim();
 
-      if (!fullName || !bio || !avatar || !username || !method || !link) {
+      const fileInput = document.getElementById("profile-avatar-file");
+      const file = fileInput.files[0];
+
+      if (!fullName || !bio || !file || !username || !method || !link) {
         alert("Please fill out all required fields.");
         return;
       }
@@ -152,19 +175,24 @@
         return;
       }
 
-      db.collection("users").doc(user.uid).set({
-        email: user.email,
-        username,
-        fullName,
-        bio,
-        avatar,
-        youtube,
-        tiktok,
-        twitch,
-        tipMethod: method,
-        tipLink: link
+      const storageRef = storage.ref(`avatars/${user.uid}/${file.name}`);
+      storageRef.put(file).then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+      }).then(downloadURL => {
+        return db.collection("users").doc(user.uid).set({
+          email: user.email,
+          username,
+          fullName,
+          bio,
+          avatar: downloadURL,
+          youtube,
+          tiktok,
+          twitch,
+          tipMethod: method,
+          tipLink: link
+        });
       }).then(() => {
-        document.getElementById("tip-status").innerText = "✅ Profile saved successfully!";
+        document.getElementById("tip-status").innerText = "✅ Profile & photo saved successfully!";
       }).catch((error) => {
         console.error("❌ Firestore error:", error);
         document.getElementById("tip-status").innerText = `❌ Error: ${error.message}`;
